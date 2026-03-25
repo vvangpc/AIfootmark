@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { ScrollView, View, TouchableOpacity, ActivityIndicator, Text, Dimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
@@ -56,7 +57,8 @@ interface Footprint {
 
 export default function HomeScreen() {
   const { theme, isDark } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(theme, insets.top), [theme, insets.top]);
   const router = useSafeRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentWishes, setRecentWishes] = useState<WishPlace[]>([]);
@@ -131,7 +133,7 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
+      <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'} safeAreaEdges={['left', 'right', 'bottom']}>
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
@@ -140,7 +142,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
+    <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'} safeAreaEdges={['left', 'right', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <ThemedView level="root" style={styles.container}>
           {/* Hero区域 - 可点击编辑，文字悬浮在上层 */}

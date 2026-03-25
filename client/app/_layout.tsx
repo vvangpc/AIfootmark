@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { LogBox } from 'react-native';
@@ -14,23 +15,23 @@ LogBox.ignoreLogs([
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <ColorSchemeProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <StatusBar style="dark"></StatusBar>
-          <Stack screenOptions={{
-            // 设置所有页面的切换动画为从右侧滑入，适用于iOS 和 Android
-            animation: 'slide_from_right',
-            gestureEnabled: true,
-            gestureDirection: 'horizontal',
-            // 隐藏自带的头部
-            headerShown: false
-          }}>
-            <Stack.Screen name="(tabs)" options={{ title: "" }} />
-          </Stack>
-          <Toast />
-        </GestureHandlerRootView>
-      </ColorSchemeProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <ColorSchemeProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <StatusBar style="dark"></StatusBar>
+            <Stack screenOptions={{
+              animation: 'slide_from_right',
+              gestureEnabled: true,
+              gestureDirection: 'horizontal',
+              headerShown: false
+            }}>
+              <Stack.Screen name="(tabs)" options={{ title: "" }} />
+            </Stack>
+            <Toast />
+          </GestureHandlerRootView>
+        </ColorSchemeProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

@@ -13,7 +13,6 @@ export const createStyles = (theme: Theme, topInset: number = 0) => {
     },
     header: {
       paddingHorizontal: Spacing.lg,
-      paddingTop: topInset + Spacing.xl,  // 使用安全区域高度 + 额外间距
       paddingBottom: Spacing.md,
     },
     headerTitle: {

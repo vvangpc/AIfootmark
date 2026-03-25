@@ -5,7 +5,10 @@ import { Spacing, BorderRadius, Theme } from '@/constants/theme';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const isSmallScreen = SCREEN_WIDTH < 375;
 
-export const createStyles = (theme: Theme) => {
+export const createStyles = (theme: Theme, topInset: number = 0) => {
+  // Hero区域高度 = 基础高度 + 顶部安全区
+  const heroHeight = (isSmallScreen ? 100 : 120) + topInset;
+  
   return StyleSheet.create({
     scrollContent: {
       flexGrow: 1,
@@ -18,12 +21,11 @@ export const createStyles = (theme: Theme) => {
     // Hero区域 - 使用层叠布局
     heroContainer: {
       marginHorizontal: Spacing.lg,
-      marginTop: Spacing.lg,
       marginBottom: Spacing.xl,
       borderRadius: BorderRadius["3xl"],
       overflow: 'hidden',
       backgroundColor: theme.primary,
-      height: isSmallScreen ? 100 : 120,  // 小屏幕减少高度
+      height: heroHeight,
       position: 'relative',
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.25)',
@@ -46,14 +48,14 @@ export const createStyles = (theme: Theme) => {
     // 文字层 - 悬浮在上层
     heroContent: {
       position: 'absolute',
-      top: 0,
+      top: topInset + 20,  // 安全区 + 额外间距
       left: 0,
       right: 0,
-      bottom: 0,
+      bottom: 20,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 10,
-      paddingHorizontal: Spacing.md,  // 添加水平内边距防止文字贴边
+      paddingHorizontal: Spacing.md,
     },
     heroTitle: {
       color: '#FFFFFF',

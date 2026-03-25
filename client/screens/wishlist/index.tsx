@@ -241,7 +241,7 @@ export default function WishlistScreen() {
 
   if (loading) {
     return (
-      <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
+      <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'} safeAreaEdges={['left', 'right', 'bottom']}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
@@ -250,10 +250,10 @@ export default function WishlistScreen() {
   }
 
   return (
-    <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
+    <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'} safeAreaEdges={['left', 'right', 'bottom']}>
       <ThemedView level="root" style={styles.container}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <ThemedText style={styles.headerTitle}>心愿清单</ThemedText>
           <ThemedText style={styles.headerSubtitle}>
             记录想去的地方，期待未来的旅程
@@ -384,7 +384,7 @@ export default function WishlistScreen() {
             style={{ flex: 1 }} 
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           >
-            <View style={styles.modalOverlay}>
+            <View style={[styles.modalOverlay, { paddingTop: insets.top + 10 }]}>
               <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.modalHeader}>
                   <ThemedText style={styles.modalTitle}>
