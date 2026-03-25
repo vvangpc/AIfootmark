@@ -6,22 +6,20 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Platform,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
+  Dimensions,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { createStyles } from './styles';
+import { NumberPickerModal } from './NumberPickerModal';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 const EXPO_PUBLIC_BACKEND_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL;
 
@@ -50,7 +48,13 @@ interface Footprint {
 
 export default function ProfileScreen() {
   const { theme, isDark } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(theme, insets.top), [theme, insets.top]);
+  
+  // 获取屏幕宽度用于响应式布局
+  const screenWidth = Dimensions.get('window').width;
+  const isSmallScreen = screenWidth < 375;
+  
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -382,10 +386,10 @@ export default function ProfileScreen() {
             <View style={styles.statsRow}>
               <TouchableOpacity style={styles.statCard} onPress={fetchWeekRecords}>
                 <View style={[styles.statIcon, { backgroundColor: '#E0F8EC' }]}>
-                  <FontAwesome6 name="calendar-week" size={24} color={theme.clayGreen} solid />
+                  <FontAwesome6 name="calendar-week" size={isSmallScreen ? 16 : 20} color={theme.clayGreen} solid />
                 </View>
                 <ThemedText style={styles.statNumber}>{timeStats?.week || 0}</ThemedText>
-                <ThemedText style={styles.statLabel}>本周打卡</ThemedText>
+                <ThemedText style={styles.statLabel}>周</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -393,10 +397,10 @@ export default function ProfileScreen() {
                 onPress={() => setShowMonthPicker(true)}
               >
                 <View style={[styles.statIcon, { backgroundColor: '#FFF4DD' }]}>
-                  <FontAwesome6 name="calendar-days" size={24} color={theme.clayYellow} solid />
+                  <FontAwesome6 name="calendar-days" size={isSmallScreen ? 16 : 20} color={theme.clayYellow} solid />
                 </View>
                 <ThemedText style={styles.statNumber}>{timeStats?.month || 0}</ThemedText>
-                <ThemedText style={styles.statLabel}>月打卡</ThemedText>
+                <ThemedText style={styles.statLabel}>月</ThemedText>
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -404,10 +408,10 @@ export default function ProfileScreen() {
                 onPress={() => setShowYearPicker(true)}
               >
                 <View style={[styles.statIcon, { backgroundColor: '#FFE8EE' }]}>
-                  <FontAwesome6 name="calendar" size={24} color={theme.clayPink} solid />
+                  <FontAwesome6 name="calendar" size={isSmallScreen ? 16 : 20} color={theme.clayPink} solid />
                 </View>
                 <ThemedText style={styles.statNumber}>{timeStats?.year || 0}</ThemedText>
-                <ThemedText style={styles.statLabel}>年打卡</ThemedText>
+                <ThemedText style={styles.statLabel}>年</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
@@ -427,18 +431,18 @@ export default function ProfileScreen() {
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
                 <View style={[styles.statIcon, { backgroundColor: '#EDE8FF' }]}>
-                  <FontAwesome6 name="heart" size={24} color={theme.primary} solid />
+                  <FontAwesome6 name="heart" size={isSmallScreen ? 16 : 20} color={theme.primary} solid />
                 </View>
                 <ThemedText style={styles.statNumber}>{stats?.totalWishes || 0}</ThemedText>
-                <ThemedText style={styles.statLabel}>心愿总数</ThemedText>
+                <ThemedText style={styles.statLabel}>心愿</ThemedText>
               </View>
 
               <View style={styles.statCard}>
                 <View style={[styles.statIcon, { backgroundColor: '#E0F8EC' }]}>
-                  <FontAwesome6 name="shoe-prints" size={24} color={theme.clayGreen} solid />
+                  <FontAwesome6 name="shoe-prints" size={isSmallScreen ? 16 : 20} color={theme.clayGreen} solid />
                 </View>
                 <ThemedText style={styles.statNumber}>{stats?.totalFootprints || 0}</ThemedText>
-                <ThemedText style={styles.statLabel}>足迹总数</ThemedText>
+                <ThemedText style={styles.statLabel}>足迹</ThemedText>
               </View>
             </View>
           </View>
@@ -456,14 +460,14 @@ export default function ProfileScreen() {
                   {exporting ? (
                     <ActivityIndicator size="small" color={theme.clayGreen} />
                   ) : (
-                    <FontAwesome6 name="upload" size={20} color={theme.clayGreen} />
+                    <FontAwesome6 name="upload" size={isSmallScreen ? 16 : 18} color={theme.clayGreen} />
                   )}
                 </View>
                 <View style={styles.menuContent}>
                   <ThemedText style={styles.menuTitle}>导出数据</ThemedText>
-                  <ThemedText style={styles.menuSubtitle}>导出所有记录为JSON文件</ThemedText>
+                  <ThemedText style={styles.menuSubtitle}>导出所有记录为JSON</ThemedText>
                 </View>
-                <FontAwesome6 name="chevron-right" size={16} color={theme.textMuted} />
+                <FontAwesome6 name="chevron-right" size={isSmallScreen ? 12 : 14} color={theme.textMuted} />
               </TouchableOpacity>
 
               <TouchableOpacity 
@@ -475,14 +479,14 @@ export default function ProfileScreen() {
                   {importing ? (
                     <ActivityIndicator size="small" color={theme.primary} />
                   ) : (
-                    <FontAwesome6 name="download" size={20} color={theme.primary} />
+                    <FontAwesome6 name="download" size={isSmallScreen ? 16 : 18} color={theme.primary} />
                   )}
                 </View>
                 <View style={styles.menuContent}>
                   <ThemedText style={styles.menuTitle}>导入数据</ThemedText>
-                  <ThemedText style={styles.menuSubtitle}>从JSON文件导入记录</ThemedText>
+                  <ThemedText style={styles.menuSubtitle}>从JSON文件导入</ThemedText>
                 </View>
-                <FontAwesome6 name="chevron-right" size={16} color={theme.textMuted} />
+                <FontAwesome6 name="chevron-right" size={isSmallScreen ? 12 : 14} color={theme.textMuted} />
               </TouchableOpacity>
             </View>
           </View>
@@ -496,11 +500,11 @@ export default function ProfileScreen() {
                 onPress={handleClearData}
               >
                 <View style={styles.dangerIcon}>
-                  <FontAwesome6 name="trash" size={20} color={theme.error} />
+                  <FontAwesome6 name="trash" size={isSmallScreen ? 16 : 18} color={theme.error} />
                 </View>
                 <View style={styles.dangerContent}>
                   <ThemedText style={styles.dangerTitle}>清空数据</ThemedText>
-                  <ThemedText style={styles.dangerSubtitle}>删除所有心愿和足迹记录（不可恢复）</ThemedText>
+                  <ThemedText style={styles.dangerSubtitle}>删除所有记录（不可恢复）</ThemedText>
                 </View>
               </TouchableOpacity>
             </View>
@@ -508,9 +512,9 @@ export default function ProfileScreen() {
 
           {/* 关于 */}
           <View style={styles.aboutSection}>
-            <FontAwesome6 name="book-open" size={24} color={theme.textMuted} />
+            <FontAwesome6 name="book-open" size={isSmallScreen ? 18 : 22} color={theme.textMuted} />
             <ThemedText style={styles.aboutText}>足迹小本本 v1.0.0</ThemedText>
-            <ThemedText style={styles.aboutText}>记录每一处风景，留住美好回忆</ThemedText>
+            <ThemedText style={styles.aboutText}>记录每一处风景</ThemedText>
           </View>
         </ThemedView>
       </ScrollView>
@@ -552,41 +556,33 @@ export default function ProfileScreen() {
         </View>
       </Modal>
 
-      {/* 年份选择器 */}
-      {showYearPicker && (
-        <DateTimePicker
-          value={new Date(selectedYear, 0, 1)}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, date) => {
-            setShowYearPicker(false);
-            if (date) {
-              const year = date.getFullYear();
-              setSelectedYear(year);
-              fetchYearRecords(year);
-            }
-          }}
-        />
-      )}
+      {/* 年份选择器 - 只选年 */}
+      <NumberPickerModal
+        visible={showYearPicker}
+        title="选择年份"
+        mode="year"
+        initialYear={selectedYear}
+        onClose={() => setShowYearPicker(false)}
+        onConfirm={(year) => {
+          setSelectedYear(year);
+          fetchYearRecords(year);
+        }}
+      />
 
-      {/* 月份选择器 */}
-      {showMonthPicker && (
-        <DateTimePicker
-          value={new Date(selectedYear, selectedMonth - 1, 1)}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, date) => {
-            setShowMonthPicker(false);
-            if (date) {
-              const year = date.getFullYear();
-              const month = date.getMonth() + 1;
-              setSelectedYear(year);
-              setSelectedMonth(month);
-              fetchMonthRecords(year, month);
-            }
-          }}
-        />
-      )}
+      {/* 月份选择器 - 选年+月 */}
+      <NumberPickerModal
+        visible={showMonthPicker}
+        title="选择年月"
+        mode="month"
+        initialYear={selectedYear}
+        initialMonth={selectedMonth}
+        onClose={() => setShowMonthPicker(false)}
+        onConfirm={(year, month) => {
+          setSelectedYear(year);
+          setSelectedMonth(month!);
+          fetchMonthRecords(year, month!);
+        }}
+      />
     </Screen>
   );
 }

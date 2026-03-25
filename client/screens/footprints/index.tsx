@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
@@ -36,7 +37,8 @@ interface Footprint {
 
 export default function FootprintsScreen() {
   const { theme, isDark } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(theme, insets.top), [theme, insets.top]);
   const [footprints, setFootprints] = useState<Footprint[]>([]);
   const [filteredFootprints, setFilteredFootprints] = useState<Footprint[]>([]);
   const [loading, setLoading] = useState(true);

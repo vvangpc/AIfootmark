@@ -6,17 +6,18 @@ import {
   Modal, 
   TextInput, 
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { createStyles } from './styles';
+import { ConfirmModal } from './ConfirmModal';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 
@@ -34,7 +35,8 @@ interface WishPlace {
 
 export default function WishlistScreen() {
   const { theme, isDark } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(() => createStyles(theme, insets.top), [theme, insets.top]);
   const [wishes, setWishes] = useState<WishPlace[]>([]);
   const [filteredWishes, setFilteredWishes] = useState<WishPlace[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,6 +50,18 @@ export default function WishlistScreen() {
   const [sceneryFeatures, setSceneryFeatures] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // 自定义确认对话框状态
+  const [checkInModalVisible, setCheckInModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [inputModalVisible, setInputModalVisible] = useState(false);
+  const [inputModalMessage, setInputModalMessage] = useState('');
+  const [selectedWish, setSelectedWish] = useState<WishPlace | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const fetchWishes = useCallback(async () => {
     try {
@@ -106,7 +120,8 @@ export default function WishlistScreen() {
 
   const handleSubmit = async () => {
     if (!name.trim()) {
-      Alert.alert('提示', '请输入地点名称');
+      setInputModalMessage('请输入地点名称');
+      setInputModalVisible(true);
       return;
     }
 
@@ -143,66 +158,85 @@ export default function WishlistScreen() {
       fetchWishes();
     } catch (error) {
       console.error('Error saving wish:', error);
-      Alert.alert('错误', '保存失败，请重试');
+      setErrorMessage('保存失败，请重试');
+      setErrorModalVisible(true);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    Alert.alert(
-      '确认删除',
-      '确定要删除这个心愿吗？',
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '删除',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/wish-places/${id}`, {
-                method: 'DELETE',
-              });
-              fetchWishes();
-            } catch (error) {
-              console.error('Error deleting wish:', error);
-              Alert.alert('错误', '删除失败，请重试');
-            }
-          },
-        },
-      ]
-    );
+  // 打开删除确认对话框
+  const openDeleteConfirm = (wish: WishPlace) => {
+    setSelectedWish(wish);
+    setDeleteModalVisible(true);
   };
 
-  const handleCheckIn = async (wish: WishPlace) => {
-    Alert.alert(
-      '打卡确认',
-      `确定要在"${wish.name}"打卡吗？打卡后将添加到足迹记录中。`,
-      [
-        { text: '取消', style: 'cancel' },
-        {
-          text: '打卡',
-          onPress: async () => {
-            try {
-              const response = await fetch(
-                `${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/wish-places/${wish.id}/check-in`,
-                { method: 'POST' }
-              );
-              
-              if (response.ok) {
-                Alert.alert('成功', '打卡成功！已添加到足迹记录');
-                fetchWishes();
-              } else {
-                throw new Error('Check-in failed');
-              }
-            } catch (error) {
-              console.error('Error checking in:', error);
-              Alert.alert('错误', '打卡失败，请重试');
-            }
-          },
-        },
-      ]
-    );
+  // 执行删除
+  const handleDelete = async () => {
+    if (!selectedWish) return;
+    
+    try {
+      setProcessing(true);
+      await fetch(`${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/wish-places/${selectedWish.id}`, {
+        method: 'DELETE',
+      });
+      setDeleteModalVisible(false);
+      setSuccessMessage('心愿已删除');
+      setSuccessModalVisible(true);
+      fetchWishes();
+    } catch (error) {
+      console.error('Error deleting wish:', error);
+      setDeleteModalVisible(false);
+      setErrorMessage('删除失败，请重试');
+      setErrorModalVisible(true);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // 打开打卡确认对话框
+  const openCheckInConfirm = (wish: WishPlace) => {
+    setSelectedWish(wish);
+    setCheckInModalVisible(true);
+  };
+
+  // 执行打卡
+  const handleCheckIn = async () => {
+    if (!selectedWish) return;
+    
+    try {
+      setProcessing(true);
+      /**
+       * 服务端文件：server/src/routes/footprints.ts
+       * 接口：POST /api/v1/footprints/check-in/:wishId
+       * Body 参数：visitedAt?: string (ISO date string, 可选)
+       */
+      const response = await fetch(
+        `${EXPO_PUBLIC_BACKEND_BASE_URL}/api/v1/footprints/check-in/${selectedWish.id}`,
+        { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ visitedAt: new Date().toISOString() }),
+        }
+      );
+      
+      if (response.ok) {
+        setCheckInModalVisible(false);
+        setSuccessMessage('打卡成功！已添加到足迹记录');
+        setSuccessModalVisible(true);
+        fetchWishes();
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Check-in failed');
+      }
+    } catch (error) {
+      console.error('Error checking in:', error);
+      setCheckInModalVisible(false);
+      setErrorMessage('打卡失败，请重试');
+      setErrorModalVisible(true);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   if (loading) {
@@ -290,7 +324,7 @@ export default function WishlistScreen() {
                 <View style={styles.cardActions}>
                   <TouchableOpacity 
                     style={[styles.actionBtn, styles.checkInBtn]}
-                    onPress={() => handleCheckIn(wish)}
+                    onPress={() => openCheckInConfirm(wish)}
                   >
                     <FontAwesome6 name="check" size={14} color="#FFFFFF" />
                     <ThemedText style={[styles.actionBtnText, { color: '#FFFFFF' }]}>
@@ -310,7 +344,7 @@ export default function WishlistScreen() {
 
                   <TouchableOpacity 
                     style={[styles.actionBtn, styles.deleteBtn]}
-                    onPress={() => handleDelete(wish.id)}
+                    onPress={() => openDeleteConfirm(wish)}
                   >
                     <FontAwesome6 name="trash" size={14} color={theme.error} />
                   </TouchableOpacity>
@@ -420,6 +454,80 @@ export default function WishlistScreen() {
           </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
       </Modal>
+
+      {/* 打卡确认对话框 */}
+      <ConfirmModal
+        visible={checkInModalVisible}
+        title="打卡确认"
+        message={`确定要在"${selectedWish?.name || ''}"打卡吗？\n打卡后将添加到足迹记录中。`}
+        confirmText="打卡"
+        cancelText="取消"
+        confirmColor="#5ED6A0"
+        icon="check"
+        iconColor="#5ED6A0"
+        iconBgColor="#E0F8EC"
+        onConfirm={handleCheckIn}
+        onCancel={() => setCheckInModalVisible(false)}
+        loading={processing}
+      />
+
+      {/* 删除确认对话框 */}
+      <ConfirmModal
+        visible={deleteModalVisible}
+        title="确认删除"
+        message="确定要删除这个心愿吗？\n删除后将无法恢复。"
+        confirmText="删除"
+        cancelText="取消"
+        confirmColor={theme.error}
+        icon="trash"
+        iconColor={theme.error}
+        iconBgColor="#FFE8EE"
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteModalVisible(false)}
+        loading={processing}
+      />
+
+      {/* 成功提示对话框 */}
+      <ConfirmModal
+        visible={successModalVisible}
+        title="成功"
+        message={successMessage}
+        confirmText="好的"
+        confirmColor="#7C5CFC"
+        icon="check-circle"
+        iconColor="#5ED6A0"
+        iconBgColor="#E0F8EC"
+        onConfirm={() => setSuccessModalVisible(false)}
+        onCancel={() => setSuccessModalVisible(false)}
+      />
+
+      {/* 错误提示对话框 */}
+      <ConfirmModal
+        visible={errorModalVisible}
+        title="出错了"
+        message={errorMessage}
+        confirmText="知道了"
+        confirmColor={theme.error}
+        icon="circle-exclamation"
+        iconColor={theme.error}
+        iconBgColor="#FFE8EE"
+        onConfirm={() => setErrorModalVisible(false)}
+        onCancel={() => setErrorModalVisible(false)}
+      />
+
+      {/* 输入提示对话框 */}
+      <ConfirmModal
+        visible={inputModalVisible}
+        title="提示"
+        message={inputModalMessage}
+        confirmText="知道了"
+        confirmColor="#7C5CFC"
+        icon="circle-info"
+        iconColor={theme.primary}
+        iconBgColor="#EDE8FF"
+        onConfirm={() => setInputModalVisible(false)}
+        onCancel={() => setInputModalVisible(false)}
+      />
     </Screen>
   );
 }

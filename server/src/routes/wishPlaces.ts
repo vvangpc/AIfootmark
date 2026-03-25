@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express';
 import { getSupabaseClient } from '../storage/database/supabase-client';
 import { insertWishPlaceSchema, updateWishPlaceSchema } from '../storage/database/shared/schema';
+import { validateUUID, getIdString } from '../utils/validation';
 
 const router = Router();
 
@@ -86,6 +87,12 @@ router.post('/', async (req: Request, res: Response) => {
  */
 router.put('/:id', async (req: Request, res: Response) => {
   try {
+    // UUID 校验
+    const idValidation = validateUUID(req.params.id);
+    if (!idValidation.success) {
+      return res.status(400).json({ error: idValidation.error });
+    }
+    
     // 使用 Zod Schema 进行参数校验
     const validation = updateWishPlaceSchema.safeParse(req.body);
     if (!validation.success) {
@@ -96,7 +103,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
     
     const client = getSupabaseClient();
-    const { id } = req.params;
+    const id = getIdString(req.params.id);
     
     const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
     const { name, distance, sceneryFeatures, notes, isVisited } = validation.data;
@@ -136,8 +143,14 @@ router.put('/:id', async (req: Request, res: Response) => {
  */
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
+    // UUID 校验
+    const idValidation = validateUUID(req.params.id);
+    if (!idValidation.success) {
+      return res.status(400).json({ error: idValidation.error });
+    }
+    
     const client = getSupabaseClient();
-    const { id } = req.params;
+    const id = getIdString(req.params.id);
     
     const { error } = await client
       .from('wish_places')

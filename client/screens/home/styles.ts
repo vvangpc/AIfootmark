@@ -1,5 +1,9 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
+
+// 获取屏幕尺寸用于响应式布局
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 375;
 
 export const createStyles = (theme: Theme) => {
   return StyleSheet.create({
@@ -11,7 +15,7 @@ export const createStyles = (theme: Theme) => {
       flex: 1,
       backgroundColor: theme.backgroundRoot,
     },
-    // Hero区域
+    // Hero区域 - 使用层叠布局
     heroContainer: {
       marginHorizontal: Spacing.lg,
       marginTop: Spacing.lg,
@@ -19,9 +23,8 @@ export const createStyles = (theme: Theme) => {
       borderRadius: BorderRadius["3xl"],
       overflow: 'hidden',
       backgroundColor: theme.primary,
-      paddingHorizontal: Spacing["2xl"],
-      paddingVertical: Spacing["4xl"],
-      alignItems: 'center',
+      height: isSmallScreen ? 100 : 120,  // 小屏幕减少高度
+      position: 'relative',
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.25)',
       // 黏土风阴影
@@ -31,18 +34,34 @@ export const createStyles = (theme: Theme) => {
       shadowRadius: 24,
       elevation: 10,
     },
+    // 背景装饰层
+    heroBgDecor: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: theme.primary,
+    },
+    // 文字层 - 悬浮在上层
+    heroContent: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
+      paddingHorizontal: Spacing.md,  // 添加水平内边距防止文字贴边
+    },
     heroTitle: {
       color: '#FFFFFF',
-      fontSize: 28,
       fontWeight: '800',
       textAlign: 'center',
-    },
-    heroSubtitle: {
-      color: 'rgba(255,255,255,0.7)',
-      fontSize: 14,
-      fontWeight: '500',
-      marginTop: Spacing.sm,
-      textAlign: 'center',
+      textShadowColor: 'rgba(0,0,0,0.1)',
+      textShadowOffset: { width: 0, height: 2 },
+      textShadowRadius: 4,
     },
     // 统计卡片区域
     statsContainer: {
@@ -52,13 +71,13 @@ export const createStyles = (theme: Theme) => {
     statsRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: Spacing.md,
+      gap: isSmallScreen ? Spacing.sm : Spacing.md,
     },
     statCard: {
       flex: 1,
       backgroundColor: theme.backgroundDefault,
-      borderRadius: BorderRadius["2xl"],
-      padding: Spacing.lg,
+      borderRadius: isSmallScreen ? BorderRadius.xl : BorderRadius["2xl"],
+      padding: isSmallScreen ? Spacing.md : Spacing.lg,
       alignItems: 'center',
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.7)',
@@ -70,24 +89,27 @@ export const createStyles = (theme: Theme) => {
       elevation: 6,
     },
     statIcon: {
-      width: 48,
-      height: 48,
+      width: isSmallScreen ? 40 : 48,
+      height: isSmallScreen ? 40 : 48,
       borderRadius: BorderRadius.xl,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: Spacing.md,
+      marginBottom: isSmallScreen ? Spacing.sm : Spacing.md,
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.7)',
     },
     statNumber: {
-      fontSize: 32,
+      fontSize: isSmallScreen ? 26 : 32,
       fontWeight: '800',
       marginBottom: Spacing.xs,
     },
     statLabel: {
-      fontSize: 12,
+      fontSize: isSmallScreen ? 11 : 12,
       fontWeight: '700',
       color: theme.textMuted,
+      textAlign: 'center',
+      // 确保文字完整显示
+      includeFontPadding: false,
     },
     sectionTitle: {
       fontSize: 18,

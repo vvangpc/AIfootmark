@@ -1,16 +1,31 @@
 import React, { useMemo } from 'react';
-import { ScrollView, View, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { ScrollView, View, TouchableOpacity, ActivityIndicator, Text, Dimensions } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { createStyles } from './styles';
+import { HeroEditModal } from './HeroEditModal';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useSafeRouter } from '@/hooks/useSafeRouter';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EXPO_PUBLIC_BACKEND_BASE_URL = process.env.EXPO_PUBLIC_BACKEND_BASE_URL;
+
+// 响应式尺寸
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 375;
+const iconSize = isSmallScreen ? 20 : 24;
+
+// 存储键
+const HERO_TITLE_KEY = 'hero_title';
+const HERO_TITLE_SIZE_KEY = 'hero_title_size';
+
+// 默认值
+const DEFAULT_TITLE = '记录每一处风景';
+const DEFAULT_TITLE_SIZE = 28;
 
 interface Stats {
   totalWishes: number;
@@ -48,6 +63,40 @@ export default function HomeScreen() {
   const [recentFootprints, setRecentFootprints] = useState<Footprint[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Hero 编辑相关状态
+  const [heroTitle, setHeroTitle] = useState(DEFAULT_TITLE);
+  const [heroTitleSize, setHeroTitleSize] = useState(DEFAULT_TITLE_SIZE);
+  const [heroEditModalVisible, setHeroEditModalVisible] = useState(false);
+
+  // 加载Hero设置
+  const loadHeroSettings = useCallback(async () => {
+    try {
+      const [savedTitle, savedTitleSize] = await Promise.all([
+        AsyncStorage.getItem(HERO_TITLE_KEY),
+        AsyncStorage.getItem(HERO_TITLE_SIZE_KEY),
+      ]);
+
+      if (savedTitle) setHeroTitle(savedTitle);
+      if (savedTitleSize) setHeroTitleSize(parseInt(savedTitleSize, 10));
+    } catch (error) {
+      console.error('Error loading hero settings:', error);
+    }
+  }, []);
+
+  // 保存Hero设置
+  const saveHeroSettings = async (title: string, titleSize: number) => {
+    try {
+      await Promise.all([
+        AsyncStorage.setItem(HERO_TITLE_KEY, title),
+        AsyncStorage.setItem(HERO_TITLE_SIZE_KEY, titleSize.toString()),
+      ]);
+      setHeroTitle(title);
+      setHeroTitleSize(titleSize);
+    } catch (error) {
+      console.error('Error saving hero settings:', error);
+    }
+  };
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -75,8 +124,9 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      loadHeroSettings();
       fetchData();
-    }, [fetchData])
+    }, [loadHeroSettings, fetchData])
   );
 
   if (loading) {
@@ -93,22 +143,29 @@ export default function HomeScreen() {
     <Screen backgroundColor={theme.backgroundRoot} statusBarStyle={isDark ? 'light' : 'dark'}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <ThemedView level="root" style={styles.container}>
-          {/* Hero区域 */}
-          <View style={styles.heroContainer}>
-            <ThemedText style={styles.heroTitle}>
-              记录每一处风景
-            </ThemedText>
-            <ThemedText style={styles.heroSubtitle}>
-              让美好的地方不遗忘
-            </ThemedText>
-          </View>
+          {/* Hero区域 - 可点击编辑，文字悬浮在上层 */}
+          <TouchableOpacity 
+            style={styles.heroContainer}
+            onPress={() => setHeroEditModalVisible(true)}
+            activeOpacity={0.9}
+          >
+            {/* 背景装饰层 */}
+            <View style={styles.heroBgDecor} />
+            
+            {/* 文字层 - 悬浮在上层 */}
+            <View style={styles.heroContent}>
+              <Text style={[styles.heroTitle, { fontSize: heroTitleSize }]}>
+                {heroTitle}
+              </Text>
+            </View>
+          </TouchableOpacity>
 
           {/* 统计卡片 */}
           <View style={styles.statsContainer}>
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
                 <View style={[styles.statIcon, { backgroundColor: theme.backgroundTertiary }]}>
-                  <FontAwesome6 name="heart" size={24} color={theme.clayPink} solid />
+                  <FontAwesome6 name="heart" size={iconSize} color={theme.clayPink} solid />
                 </View>
                 <ThemedText variant="stat" color={theme.textPrimary}>
                   {stats?.totalWishes || 0}
@@ -118,7 +175,7 @@ export default function HomeScreen() {
 
               <View style={styles.statCard}>
                 <View style={[styles.statIcon, { backgroundColor: theme.backgroundTertiary }]}>
-                  <FontAwesome6 name="shoe-prints" size={24} color={theme.clayGreen} solid />
+                  <FontAwesome6 name="shoe-prints" size={iconSize} color={theme.clayGreen} solid />
                 </View>
                 <ThemedText variant="stat" color={theme.textPrimary}>
                   {stats?.totalFootprints || 0}
@@ -195,6 +252,16 @@ export default function HomeScreen() {
           </View>
         </ThemedView>
       </ScrollView>
+
+      {/* Hero编辑弹窗 - 使用key确保每次打开时重新创建 */}
+      <HeroEditModal
+        key={`hero-edit-${heroEditModalVisible}`}
+        visible={heroEditModalVisible}
+        onClose={() => setHeroEditModalVisible(false)}
+        onSave={saveHeroSettings}
+        initialTitle={heroTitle}
+        initialTitleSize={heroTitleSize}
+      />
     </Screen>
   );
 }

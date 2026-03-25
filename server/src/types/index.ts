@@ -1,66 +1,22 @@
 /**
  * 共享类型定义
- * 前后端共用的数据类型，确保类型安全
+ * 
+ * 设计原则：
+ * 1. 数据库核心类型（WishPlace, Footprint 等）直接从 schema.ts 重导出
+ *    避免双重数据源，确保类型与数据库 Schema 保持一致
+ * 2. 这里只保留 Drizzle 不负责的、额外的业务类型
  */
 
-// ========== 心愿清单类型 ==========
-
-export interface WishPlace {
-  id: string;
-  name: string;
-  distance: string | null;
-  scenery_features: string | null;
-  notes: string | null;
-  is_visited: boolean;
-  created_at: string;
-  updated_at: string | null;
-}
-
-export interface InsertWishPlace {
-  name: string;
-  distance?: string | null;
-  sceneryFeatures?: string | null;
-  notes?: string | null;
-}
-
-export interface UpdateWishPlace {
-  name?: string;
-  distance?: string | null;
-  sceneryFeatures?: string | null;
-  notes?: string | null;
-  isVisited?: boolean;
-}
-
-// ========== 足迹记录类型 ==========
-
-export interface Footprint {
-  id: string;
-  name: string;
-  distance: string | null;
-  scenery_features: string | null;
-  notes: string | null;
-  visited_at: string;
-  wish_place_id: string | null;
-  created_at: string;
-  updated_at: string | null;
-}
-
-export interface InsertFootprint {
-  name: string;
-  distance?: string | null;
-  sceneryFeatures?: string | null;
-  notes?: string | null;
-  visitedAt?: string;
-  wishPlaceId?: string | null;
-}
-
-export interface UpdateFootprint {
-  name?: string;
-  distance?: string | null;
-  sceneryFeatures?: string | null;
-  notes?: string | null;
-  visitedAt?: string;
-}
+// ========== 数据库核心类型（自动推导）==========
+// 直接复用 Drizzle/Zod 推导的类型，遵循 DRY 原则
+export type { 
+  WishPlace, 
+  InsertWishPlace, 
+  UpdateWishPlace,
+  Footprint, 
+  InsertFootprint, 
+  UpdateFootprint,
+} from '../storage/database/shared/schema';
 
 // ========== 统计类型 ==========
 
@@ -87,8 +43,8 @@ export interface ExportData {
   version: string;
   exportTime: string;
   data: {
-    wishPlaces: WishPlace[];
-    footprints: Footprint[];
+    wishPlaces: import('../storage/database/shared/schema').WishPlace[];
+    footprints: import('../storage/database/shared/schema').Footprint[];
   };
 }
 
@@ -108,6 +64,6 @@ export interface ApiError {
   details?: Array<{
     code: string;
     message: string;
-    path?: string[];
+    path?: (string | number)[];
   }>;
 }

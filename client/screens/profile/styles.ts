@@ -1,7 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
 
-export const createStyles = (theme: Theme) => {
+// 获取屏幕尺寸用于响应式布局
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 375;
+
+export const createStyles = (theme: Theme, topInset: number = 0) => {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -12,11 +16,11 @@ export const createStyles = (theme: Theme) => {
     },
     header: {
       paddingHorizontal: Spacing.lg,
-      paddingTop: Spacing["2xl"],
+      paddingTop: topInset + Spacing.xl,  // 使用安全区域高度 + 额外间距
       paddingBottom: Spacing.lg,
     },
     headerTitle: {
-      fontSize: 28,
+      fontSize: isSmallScreen ? 24 : 28,
       fontWeight: '800',
       color: theme.textPrimary,
     },
@@ -26,21 +30,21 @@ export const createStyles = (theme: Theme) => {
       marginBottom: Spacing.xl,
     },
     sectionTitle: {
-      fontSize: 18,
+      fontSize: isSmallScreen ? 16 : 18,
       fontWeight: '800',
       color: theme.textPrimary,
       marginBottom: Spacing.lg,
     },
     statsRow: {
       flexDirection: 'row',
-      gap: Spacing.md,
+      gap: isSmallScreen ? Spacing.sm : Spacing.md,
       marginBottom: Spacing.md,
     },
     statCard: {
       flex: 1,
       backgroundColor: theme.backgroundDefault,
-      borderRadius: BorderRadius["2xl"],
-      padding: Spacing.xl,
+      borderRadius: isSmallScreen ? BorderRadius.xl : BorderRadius["2xl"],
+      padding: isSmallScreen ? Spacing.md : Spacing.lg,
       alignItems: 'center',
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.7)',
@@ -51,25 +55,26 @@ export const createStyles = (theme: Theme) => {
       elevation: 6,
     },
     statIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: BorderRadius.xl,
+      width: isSmallScreen ? 36 : 44,
+      height: isSmallScreen ? 36 : 44,
+      borderRadius: BorderRadius.lg,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: Spacing.md,
+      marginBottom: isSmallScreen ? Spacing.sm : Spacing.md,
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.7)',
     },
     statNumber: {
-      fontSize: 32,
+      fontSize: isSmallScreen ? 24 : 32,
       fontWeight: '800',
       color: theme.textPrimary,
-      marginBottom: Spacing.xs,
+      marginBottom: 2,
     },
     statLabel: {
-      fontSize: 12,
+      fontSize: isSmallScreen ? 10 : 12,
       fontWeight: '700',
       color: theme.textMuted,
+      textAlign: 'center',
     },
     // 图表区域
     chartSection: {
@@ -78,8 +83,8 @@ export const createStyles = (theme: Theme) => {
     },
     chartCard: {
       backgroundColor: theme.backgroundDefault,
-      borderRadius: BorderRadius["2xl"],
-      padding: Spacing.xl,
+      borderRadius: isSmallScreen ? BorderRadius.xl : BorderRadius["2xl"],
+      padding: isSmallScreen ? Spacing.lg : Spacing.xl,
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.7)',
       shadowColor: theme.primary,
@@ -89,7 +94,7 @@ export const createStyles = (theme: Theme) => {
       elevation: 6,
     },
     chartTitle: {
-      fontSize: 16,
+      fontSize: isSmallScreen ? 14 : 16,
       fontWeight: '700',
       color: theme.textPrimary,
       marginBottom: Spacing.lg,
@@ -97,8 +102,8 @@ export const createStyles = (theme: Theme) => {
     chartBars: {
       flexDirection: 'row',
       alignItems: 'flex-end',
-      height: 120,
-      gap: Spacing.sm,
+      height: isSmallScreen ? 80 : 120,
+      gap: isSmallScreen ? 4 : Spacing.sm,
     },
     chartBar: {
       flex: 1,
@@ -114,12 +119,12 @@ export const createStyles = (theme: Theme) => {
       minHeight: 4,
     },
     barLabel: {
-      fontSize: 10,
+      fontSize: isSmallScreen ? 8 : 10,
       color: theme.textMuted,
       marginTop: Spacing.xs,
     },
     barValue: {
-      fontSize: 10,
+      fontSize: isSmallScreen ? 8 : 10,
       fontWeight: '600',
       color: theme.textSecondary,
       marginTop: 2,
@@ -131,7 +136,7 @@ export const createStyles = (theme: Theme) => {
     },
     menuCard: {
       backgroundColor: theme.backgroundDefault,
-      borderRadius: BorderRadius["2xl"],
+      borderRadius: isSmallScreen ? BorderRadius.xl : BorderRadius["2xl"],
       overflow: 'hidden',
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.7)',
@@ -144,7 +149,7 @@ export const createStyles = (theme: Theme) => {
     menuItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: Spacing.xl,
+      padding: isSmallScreen ? Spacing.lg : Spacing.xl,
       borderBottomWidth: 1,
       borderBottomColor: theme.borderLight,
     },
@@ -152,8 +157,8 @@ export const createStyles = (theme: Theme) => {
       borderBottomWidth: 0,
     },
     menuIcon: {
-      width: 44,
-      height: 44,
+      width: isSmallScreen ? 36 : 44,
+      height: isSmallScreen ? 36 : 44,
       borderRadius: BorderRadius.lg,
       alignItems: 'center',
       justifyContent: 'center',
@@ -163,13 +168,13 @@ export const createStyles = (theme: Theme) => {
       flex: 1,
     },
     menuTitle: {
-      fontSize: 16,
+      fontSize: isSmallScreen ? 14 : 16,
       fontWeight: '700',
       color: theme.textPrimary,
       marginBottom: 2,
     },
     menuSubtitle: {
-      fontSize: 13,
+      fontSize: isSmallScreen ? 11 : 13,
       color: theme.textMuted,
     },
     // 危险操作
@@ -179,7 +184,7 @@ export const createStyles = (theme: Theme) => {
     },
     dangerCard: {
       backgroundColor: '#FFE8EE',
-      borderRadius: BorderRadius["2xl"],
+      borderRadius: isSmallScreen ? BorderRadius.xl : BorderRadius["2xl"],
       overflow: 'hidden',
       borderWidth: 1.5,
       borderColor: 'rgba(255,255,255,0.7)',
@@ -187,11 +192,11 @@ export const createStyles = (theme: Theme) => {
     dangerItem: {
       flexDirection: 'row',
       alignItems: 'center',
-      padding: Spacing.xl,
+      padding: isSmallScreen ? Spacing.lg : Spacing.xl,
     },
     dangerIcon: {
-      width: 44,
-      height: 44,
+      width: isSmallScreen ? 36 : 44,
+      height: isSmallScreen ? 36 : 44,
       borderRadius: BorderRadius.lg,
       backgroundColor: 'rgba(255,107,138,0.2)',
       alignItems: 'center',
@@ -202,13 +207,13 @@ export const createStyles = (theme: Theme) => {
       flex: 1,
     },
     dangerTitle: {
-      fontSize: 16,
+      fontSize: isSmallScreen ? 14 : 16,
       fontWeight: '700',
       color: theme.error,
       marginBottom: 2,
     },
     dangerSubtitle: {
-      fontSize: 13,
+      fontSize: isSmallScreen ? 11 : 13,
       color: theme.textMuted,
     },
     // 关于
@@ -250,7 +255,7 @@ export const createStyles = (theme: Theme) => {
       borderBottomColor: theme.borderLight,
     },
     modalTitle: {
-      fontSize: 20,
+      fontSize: isSmallScreen ? 18 : 20,
       fontWeight: '800',
       color: theme.textPrimary,
     },
@@ -286,7 +291,7 @@ export const createStyles = (theme: Theme) => {
     },
     recordName: {
       flex: 1,
-      fontSize: 16,
+      fontSize: isSmallScreen ? 14 : 16,
       fontWeight: '700',
       color: theme.textPrimary,
     },

@@ -1,7 +1,11 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { Spacing, BorderRadius, Theme } from '@/constants/theme';
 
-export const createStyles = (theme: Theme) => {
+// 获取屏幕尺寸用于响应式布局
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const isSmallScreen = SCREEN_WIDTH < 375;
+
+export const createStyles = (theme: Theme, topInset: number = 0) => {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -9,11 +13,11 @@ export const createStyles = (theme: Theme) => {
     },
     header: {
       paddingHorizontal: Spacing.lg,
-      paddingTop: Spacing["2xl"],
+      paddingTop: topInset + Spacing.xl,  // 使用安全区域高度 + 额外间距
       paddingBottom: Spacing.md,
     },
     headerTitle: {
-      fontSize: 28,
+      fontSize: isSmallScreen ? 24 : 28,
       fontWeight: '800',
       color: theme.textPrimary,
     },
